@@ -8,7 +8,8 @@ np.random.seed(42)
 n = 1000
 
 # Lists of categories and sentiments
-categories = ["Travel", "Fashion", "Politics", "Tech", "Sports"]
+categories = ["Entertainment", "Politics", "Tech", "Sports"]
+category_weights = {"Entertainment": 1.2, "Politics": 1.5, "Tech": 0.7, "Sports": 0.9}
 sentiments = ["positive", "neutral", "negative"]
 
 # Generate synthetic data
@@ -18,11 +19,13 @@ data = {
     "followers": np.random.randint(50, 100000, size=n),
     "likes": np.random.poisson(lam=150, size=n),
     "retweets": np.random.poisson(lam=30, size=n),
-    "sentiment": np.random.choice(sentiments, size=n, p=[0.5, 0.3, 0.2]),
+    "sentiment": np.random.choice(sentiments, size=n, p=[0.2, 0.3, 0.5]),
     "posted_hour": np.random.randint(0, 24, size=n),
 }
 
 df = pd.DataFrame(data)
+
+df["weight"] = df["category"].map(category_weights)
 
 # Introduce null values (in ~3% of rows for some columns)
 for col in ["followers", "sentiment"]:
@@ -37,10 +40,12 @@ df.loc[outlier_idx, "followers"] = df["followers"].max() * 20
 df.loc[outlier_idx, "likes"] = df["likes"].max() * 30
 
 # Target variable (whether the tweet went viral)
-df["viral"] = (df["likes"].fillna(0) + 2 * df["retweets"]) > (
+df["viral"] = ((df["likes"].fillna(0) + 2 * df["retweets"]) * df["weight"]) > (
     0.05 * df["followers"].fillna(1)
 )
 df["viral"] = df["viral"].astype(bool)
+
+df.drop(columns="weight", inplace=True)
 
 # Save dataset
 output_path = "../data/tweets_synthetic.csv"

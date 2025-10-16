@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import pandas as pd
 
@@ -54,6 +56,7 @@ df.drop(columns="weight", inplace=True)
 
 # Save dataset
 output_path = "../data/tweets_synthetic.csv"
+os.makedirs(os.path.dirname(output_path), exist_ok=True)
 df.to_csv(output_path, index=False)
 
 print(f"Dataset generated successfully at {output_path}")
